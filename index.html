@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PinHealth - Social Group-Buying & Direct Farm-to-Table Health</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pddRed: '#e02e24',
+            pddRedHover: '#c8241b',
+            pddOrange: '#ff5722',
+            pddLightRed: '#fff1f0',
+            pddGold: '#ff9800',
+            pddGreen: '#00b578'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="text-slate-900 antialiased min-h-screen flex flex-col">
+
+  <!-- ================= TOP PDD RED STATUS BAR ================= -->
+  <div class="bg-gradient-to-r from-pddRed via-rose-600 to-pddOrange text-white text-xs py-1.5 px-4 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center space-x-3">
+        <span class="font-extrabold flex items-center gap-1.5 bg-white/20 px-2 py-0.5 rounded text-[11px]">
+          <i class="fa-solid fa-users"></i> Pinduoduo-Style Team Deals
+        </span>
+        <span class="hidden md:inline text-rose-200">|</span>
+        <span class="hidden md:flex items-center gap-1 text-rose-100">
+          <i class="fa-solid fa-bolt-lightning text-yellow-300"></i> Direct Producer Sourcing & Group Buying Subsidies
+        </span>
+      </div>
+      <div class="flex items-center space-x-3 font-medium" id="topNavSellerActions">
+        <!-- Dynamic Orders link only displayed after Admin/Seller login -->
+        <span id="adminOrdersNavWrapper" class="hidden flex items-center gap-2">
+          <button onclick="switchView('orders-list')" class="hover:text-yellow-200 transition flex items-center gap-1 text-white underline font-semibold">
+            <i class="fa-solid fa-clock-rotate-left"></i> Consignments & Orders (5)
+          </button>
+          <span class="text-rose-200">|</span>
+        </span>
+        <button onclick="handleAdminNavClick()" class="hover:text-yellow-200 transition flex items-center gap-1 bg-black/20 hover:bg-black/30 px-2.5 py-0.5 rounded text-[11px] border border-white/20">
+          <i class="fa-solid fa-store"></i> <span id="navAdminLabel">Merchant Console</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN HEADER (PINDUODUO BOLD RED) ================= -->
+  <header class="bg-white sticky top-0 z-50 shadow-md border-b-2 border-pddRed">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      
+      <!-- Logo -->
+      <a href="javascript:void(0)" onclick="switchView('marketplace')" class="flex items-center gap-2 group">
+        <div class="w-11 h-11 bg-gradient-to-tr from-pddRed to-pddOrange rounded-2xl flex items-center justify-center text-white shadow-md transform group-hover:scale-105 transition">
+          <i class="fa-solid fa-users-rays text-2xl"></i>
+        </div>
+        <div class="leading-none">
+          <div class="flex items-center gap-1">
+            <h1 class="text-2xl font-black tracking-tight text-pddRed">PinHealth</h1>
+            <span class="bg-pddRed text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full">Group Buy</span>
+          </div>
+          <span class="text-[10px] tracking-wider font-extrabold text-slate-500 uppercase">Together For Less</span>
+        </div>
+      </a>
+
+      <!-- Search Bar -->
+      <div class="flex-1 max-w-2xl relative">
+        <div class="flex rounded-full overflow-hidden border-2 border-pddRed bg-white focus-within:ring-2 focus-within:ring-pddOrange shadow-inner">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search collagen, NMN, raw enzymes, milk thistle, fish oil..." 
+            class="w-full px-4 py-2 text-slate-900 text-sm outline-none"
+            onkeyup="handleSearch(event)"
+          >
+          <button onclick="executeSearch()" class="bg-gradient-to-r from-pddRed to-pddOrange hover:from-pddRedHover hover:to-pddRed text-white px-6 py-2 font-bold text-xs sm:text-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span class="hidden sm:inline">Search</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-3">
+        <!-- Cart Button -->
+        <button onclick="openCartModal()" class="relative p-2.5 bg-pddLightRed hover:bg-rose-100 rounded-full transition flex items-center justify-center text-pddRed border border-rose-200">
+          <i class="fa-solid fa-cart-shopping text-xl"></i>
+          <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-pddRed text-white font-extrabold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PDD Category Slider -->
+    <div class="bg-white border-t border-slate-100 text-xs py-2 px-4 shadow-inner">
+      <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-hide" id="categoryFilterContainer">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+    <!-- VIEW 1: MARKETPLACE WITH TEAM-BUYING PROMPTS (DEFAULT) -->
+    <section id="view-marketplace" class="space-y-6">
+      
+      <!-- Pinduoduo Gamified Hero Promotion -->
+      <div class="bg-gradient-to-r from-rose-600 via-pddRed to-pddOrange rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="max-w-xl z-10 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="bg-yellow-300 text-rose-950 font-black text-[11px] px-3 py-1 rounded-full uppercase tracking-wider shadow">
+              <i class="fa-solid fa-fire text-pddRed mr-1"></i> Subsidized Team Buys
+            </span>
+            <span class="bg-white/20 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+              Factory Direct Price
+            </span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-black leading-tight drop-shadow">Invite 1 Friend, Unlock Up to 35% Off Health Essentials</h2>
+          <p class="text-xs sm:text-sm text-rose-100">Zero middleman markup on pure supplements, organic extracts, and lab-certified formulas fulfilled directly from regional cold-chain terminals.</p>
+          <div class="pt-2 flex flex-wrap gap-3">
+            <button onclick="filterCategory('All')" class="bg-white hover:bg-rose-50 text-pddRed font-black px-5 py-2.5 rounded-full text-xs sm:text-sm shadow-md transition transform hover:-translate-y-0.5">
+              Browse 10 Verified Group Buys
+            </button>
+            <button onclick="applyPromoVoucher('TEAM20')" class="bg-rose-950/40 hover:bg-rose-950/60 text-white font-bold px-4 py-2.5 rounded-full text-xs border border-white/30 transition">
+              Redeem Code: TEAM20
+            </button>
+          </div>
+        </div>
+        <div class="text-white/20 text-9xl pointer-events-none hidden md:block">
+          <i class="fa-solid fa-people-carry-box"></i>
+        </div>
+      </div>
+
+      <!-- Real-Time Team Formations Live Bar -->
+      <div class="bg-pddLightRed border border-rose-200 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs text-rose-950">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <span class="font-extrabold text-pddRed uppercase">Live Sourcing Groups:</span>
+          <span class="font-medium">1,482 group buys successfully formed across Klang Valley in the past hour!</span>
+        </div>
+        <span class="text-rose-700 font-bold hidden sm:inline">Guaranteed Shipping Within 24 Hours</span>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-slate-900 text-lg sm:text-xl flex items-center gap-2" id="productsHeading">
+            <i class="fa-solid fa-cart-shopping text-pddRed"></i> 10 Featured Group-Buy Health Formulations
+          </h3>
+          <span class="text-xs text-slate-500 font-bold" id="productCountLabel">10 items available</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="productsGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: ADMIN & SELLER LOGIN PAGE -->
+    <section id="view-admin-login" class="hidden max-w-md mx-auto my-8">
+      <div class="bg-white p-8 rounded-3xl shadow-xl border border-rose-100 space-y-5">
+        <div class="text-center space-y-1">
+          <div class="w-12 h-12 bg-pddLightRed text-pddRed rounded-2xl flex items-center justify-center mx-auto text-xl font-bold shadow-inner mb-2">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">Merchant Seller Console</h2>
+          <p class="text-xs text-slate-500">Sign in to manage inventory, update admin profile, and track consignments</p>
+        </div>
+
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 text-xs text-rose-950 space-y-1.5">
+          <p class="font-bold flex items-center gap-1 text-pddRed"><i class="fa-solid fa-key"></i> Pre-Filled Admin Credentials:</p>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <div>User: <code class="bg-white px-2 py-0.5 rounded font-mono font-bold text-slate-800 border">admin</code></div>
+            <div>Password: <code class="bg-white px-2 py-0.5 rounded font-mono font-bold text-slate-800 border">PinHealth@2026</code></div>
+          </div>
+          <button onclick="autofillAdminCredentials()" class="text-[11px] text-pddRed hover:underline font-extrabold mt-1 block">
+            ⚡ Click here to autofill login
+          </button>
+        </div>
+
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Email or Admin Username</label>
+            <input type="text" id="adminUserInput" required placeholder="admin" class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Password</label>
+            <input type="password" id="adminPassInput" required placeholder="PinHealth@2026" class="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">
+          </div>
+          <div id="loginErrorMessage" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+            Invalid credentials. Please use <code>admin</code> and <code>PinHealth@2026</code>.
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-pddRed to-pddOrange hover:from-pddRedHover hover:to-pddRed text-white font-black py-3 rounded-xl shadow-md transition text-sm">
+            Sign In to Merchant Hub
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- VIEW 3: ADMIN PROFILE PAGE -->
+    <section id="view-admin-profile" class="hidden space-y-6">
+      
+      <!-- Top Profile Card -->
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pddRed to-pddOrange text-white flex items-center justify-center font-black text-2xl shadow-md">
+            PH
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-black text-slate-900" id="displayAdminHeaderName">Marcus Sterling (Operations Lead)</h2>
+              <span class="bg-rose-100 text-pddRed text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-300">Verified PDD Merchant</span>
+            </div>
+            <p class="text-xs text-slate-500">Merchant ID: <span class="font-mono text-slate-700">PH-MERCH-99120-MY</span> | Role: Platform Administrator</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="switchView('admin-products')" class="px-4 py-2 bg-pddRed hover:bg-pddRedHover text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-boxes-stacked"></i> Products Sold by Admin
+          </button>
+          <button onclick="switchView('orders-list')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-list-check"></i> Orders & Shipments
+          </button>
+          <button onclick="adminLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl transition border border-rose-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Profile Form -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+          <div class="border-b pb-3 flex items-center justify-between">
+            <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-id-card text-pddRed"></i> Admin & Seller Account Profile
+            </h3>
+            <span class="text-xs text-slate-400">Manage store identity & dispatch details</span>
+          </div>
+
+          <form onsubmit="saveAdminProfile(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Full Legal Name</label>
+              <input type="text" id="profNameInput" required value="Marcus Sterling" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Official Contact Email</label>
+              <input type="email" id="profEmailInput" required value="admin@pinhealth.com" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Phone Number (Support Hotline)</label>
+              <input type="text" id="profPhoneInput" required value="+60 3-7890 1234" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Company / Store Name</label>
+              <input type="text" id="profCompanyInput" required value="PinHealth Global Bio-Logistics Sdn Bhd" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Central Warehouse Physical Address</label>
+              <textarea id="profAddressInput" rows="2" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:border-pddRed text-sm">Berth 14, Westports Logistics Complex, 42920 Port Klang, Selangor, Malaysia.</textarea>
+            </div>
+            <div class="sm:col-span-2 flex justify-end gap-2 pt-2">
+              <button type="submit" class="bg-pddRed hover:bg-pddRedHover text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow transition">
+                <i class="fa-solid fa-floppy-disk mr-1"></i> Save Profile Details
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Store Status Card -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="font-black text-base text-slate-900 border-b pb-3 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-emerald-600"></i> Merchant Highlights
+            </h3>
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between py-1 border-b border-slate-100">
+                <span class="text-slate-500">Fulfilled Consignments</span>
+                <span class="font-bold text-slate-800">5 Orders</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-100">
+                <span class="text-slate-500">Total Group Revenue</span>
+                <span class="font-bold text-slate-800">RM 1,215.30</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-100">
+                <span class="text-slate-500">Team Formation Rate</span>
+                <span class="font-bold text-emerald-600">99.4% Successful</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-slate-500">Active Catalog Items</span>
+                <span class="font-bold text-slate-800" id="adminActiveCount">10 Items</span>
+              </div>
+            </div>
+          </div>
+          <button onclick="switchView('admin-products')" class="w-full py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-box-open"></i> Manage All Products Sold &rarr;
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- VIEW 4: PRODUCTS SOLD BY ADMIN / SELLER -->
+    <section id="view-admin-products" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+        
+        <div class="flex flex-wrap items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div>
+            <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked text-pddRed"></i> Products Sold by PinHealth Admin
+            </h2>
+            <p class="text-xs text-slate-500">Inventory and listings published and fulfilled directly from the merchant terminal.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchView('admin-profile')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+              <i class="fa-solid fa-user"></i> Admin Profile
+            </button>
+            <button onclick="switchView('marketplace')" class="px-3.5 py-2 bg-pddRed hover:bg-pddRedHover text-white text-xs font-bold rounded-xl transition shadow">
+              <i class="fa-solid fa-shop"></i> Storefront View
+            </button>
+          </div>
+        </div>
+
+        <!-- Add New Product Form Section -->
+        <div class="bg-rose-50/50 p-5 rounded-2xl border border-rose-200">
+          <h3 class="font-black text-xs uppercase tracking-wider text-pddRed mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-plus"></i> Launch New Health Product to Group-Buy Catalog
+          </h3>
+          <form onsubmit="handleAddNewAdminProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div class="md:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Formulation Name</label>
+              <input type="text" id="newProdTitle" required placeholder="e.g., Pure Marine Collagen Peptides 300g" class="w-full p-2.5 border rounded-xl bg-white outline-none focus:border-pddRed">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Category</label>
+              <select id="newProdCategory" class="w-full p-2.5 border rounded-xl bg-white outline-none focus:border-pddRed">
+                <option value="Immune Support">Immune Support</option>
+                <option value="Cardio & Heart">Cardio & Heart</option>
+                <option value="Digestive Health">Digestive Health</option>
+                <option value="Joint & Mobility">Joint & Mobility</option>
+                <option value="Stress & Sleep">Stress & Sleep</option>
+                <option value="Vitamins & Minerals">Vitamins & Minerals</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Group-Buy Price (RM)</label>
+              <input type="number" step="0.1" id="newProdPrice" required placeholder="68.00" class="w-full p-2.5 border rounded-xl bg-white outline-none focus:border-pddRed">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Stock Count</label>
+              <input type="number" id="newProdStock" required placeholder="120" class="w-full p-2.5 border rounded-xl bg-white outline-none focus:border-pddRed">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Dosage / Serving Size</label>
+              <input type="text" id="newProdDosage" placeholder="1 Capsule Daily (60 Count)" class="w-full p-2.5 border rounded-xl bg-white outline-none focus:border-pddRed">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Product Image URL</label>
+              <input type="url" id="newProdImg" placeholder="https://images.unsplash.com/..." class="w-full p-2.5 border rounded-xl bg-white outline-none focus:border-pddRed">
+            </div>
+            <div class="md:col-span-4 flex justify-end">
+              <button type="submit" class="bg-pddRed hover:bg-pddRedHover text-white font-black px-5 py-2.5 rounded-xl text-xs transition shadow">
+                + Publish Group Deal
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Products Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Item ID</th>
+                <th class="p-3">Product Name & Category</th>
+                <th class="p-3">Serving Size</th>
+                <th class="p-3">Group Price (RM)</th>
+                <th class="p-3">Stock Units</th>
+                <th class="p-3">Team Buys Formed</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminProductsTableBody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 5: TRANSACTIONS & SHIPMENTS LIST (AUTHENTICATED SESSIONS ONLY) -->
+    <section id="view-orders-list" class="hidden space-y-6">
+      
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-receipt text-pddRed"></i> Merchant Consignment & Order Records
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              5 verified merchant group transactions. <strong>Click any Order ID</strong> to view the full receipt or <strong>click any Tracking ID</strong> for the live delivery timeline.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchView('admin-profile')" class="text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1">
+              <i class="fa-solid fa-user"></i> Admin Console
+            </button>
+            <span class="text-slate-300">|</span>
+            <button onclick="switchView('marketplace')" class="text-xs text-pddRed hover:underline font-bold flex items-center gap-1">
+              <i class="fa-solid fa-arrow-left"></i> Return to Shopping
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Order ID (Clickable)</th>
+                <th class="p-3">Shipment / Tracking No (Clickable)</th>
+                <th class="p-3">Date</th>
+                <th class="p-3">Team Leader / Customer</th>
+                <th class="p-3">Products Purchased</th>
+                <th class="p-3">Total Amount</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Details</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL 1: PRODUCT DETAILS (PDD SINGLE VS GROUP BUY) ================= -->
+  <div id="productDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
+      
+      <div class="md:w-1/2 bg-slate-50 p-6 flex flex-col items-center justify-center relative">
+        <img id="detailImg" src="" alt="Product" class="max-h-72 w-full object-contain rounded-2xl">
+        <span class="absolute top-4 left-4 bg-pddRed text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow">
+          100% Group Subsidized
+        </span>
+      </div>
+
+      <div class="md:w-1/2 p-6 flex flex-col justify-between overflow-y-auto">
+        <div>
+          <div class="flex justify-between items-start">
+            <span id="detailCategory" class="text-[10px] uppercase font-bold tracking-wider bg-rose-50 text-pddRed border border-rose-200 px-2.5 py-0.5 rounded-full">
+              Category
+            </span>
+            <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-700 text-lg">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <h3 id="detailTitle" class="text-lg font-black text-slate-900 mt-2 leading-snug">Product Name</h3>
+          
+          <div class="flex items-center gap-2 mt-2 text-xs text-slate-600">
+            <div class="text-amber-500 font-bold flex items-center">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <span id="detailRatingVal" class="font-bold text-slate-800">4.9</span>
+            <span>|</span>
+            <span id="detailRatingsCount" class="text-pddRed font-bold">1,420 group buys formed</span>
+          </div>
+
+          <!-- Dual Price Indicator (Pinduoduo Hallmark) -->
+          <div class="my-4 p-3 bg-pddLightRed rounded-2xl border border-rose-200 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] text-pddRed font-black uppercase tracking-wider block">Group Buy Price</span>
+              <span id="detailPrice" class="text-2xl font-black text-pddRed">RM 0.00</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 font-semibold block">Single Buy Price</span>
+              <span id="detailOrigPrice" class="text-xs text-slate-400 line-through">RM 0.00</span>
+            </div>
+          </div>
+
+          <p id="detailDescription" class="text-xs text-slate-600 leading-relaxed mb-4">
+            Product description details.
+          </p>
+
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs space-y-1 mb-4">
+            <div class="flex justify-between"><span class="text-slate-500">Serving Size:</span> <span id="detailDosage" class="font-semibold text-slate-800">-</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Available Batch Stock:</span> <span id="detailStock" class="font-semibold text-emerald-600">-</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Fulfilled By:</span> <span class="font-semibold text-slate-800">PinHealth Port Terminal Hub</span></div>
+          </div>
+
+          <!-- Qty selector -->
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-xs font-bold text-slate-700">Quantity:</span>
+            <div class="flex items-center border rounded-xl bg-white overflow-hidden">
+              <button onclick="changeDetailQty(-1)" class="px-3 py-1 text-slate-500 hover:bg-slate-100 font-bold">-</button>
+              <input type="number" id="detailQtyInput" value="1" min="1" class="w-12 text-center text-xs font-bold outline-none" readonly>
+              <button onclick="changeDetailQty(1)" class="px-3 py-1 text-slate-500 hover:bg-slate-100 font-bold">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pinduoduo Split Action Buttons -->
+        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+          <button onclick="addToCartFromDetail(false)" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-xs transition flex flex-col items-center">
+            <span class="text-[10px] text-slate-500">Buy Alone</span>
+            <span id="btnSinglePrice">RM 0.00</span>
+          </button>
+          <button onclick="addToCartFromDetail(true)" class="py-2.5 px-3 bg-gradient-to-r from-pddRed to-pddOrange hover:from-pddRedHover hover:to-pddRed text-white font-black rounded-2xl text-xs shadow-md transition flex flex-col items-center">
+            <span class="text-[10px] text-yellow-200 uppercase tracking-wider">Start Team Buy</span>
+            <span id="btnGroupPrice">RM 0.00</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: ORDER INVOICE DETAILS ================= -->
+  <div id="orderDetailsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      
+      <div class="bg-gradient-to-r from-pddRed to-pddOrange text-white p-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-receipt text-yellow-300 text-lg"></i>
+          <div>
+            <h3 class="font-black text-base flex items-center gap-2">
+              Group Buy Order Summary <span id="modalOrderCode" class="text-yellow-200 font-mono">#ORD-00000</span>
+            </h3>
+            <p class="text-[11px] text-rose-100" id="modalOrderDate">Date: 2026-10-10</p>
+          </div>
+        </div>
+        <button onclick="closeOrderDetailsModal()" class="text-white hover:text-rose-200 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 text-xs">
+        
+        <div class="bg-pddLightRed p-3.5 rounded-2xl border border-rose-200 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <span class="text-slate-500 block">Status:</span>
+            <span id="modalOrderStatusBadge" class="font-bold text-pddRed bg-white px-2 py-0.5 rounded-full border border-rose-300 inline-block mt-0.5">Delivered</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block">Assigned Courier:</span>
+            <span id="modalOrderCourier" class="font-bold text-slate-800">DHL Express</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block">Shipment ID:</span>
+            <button id="modalOrderTrackingBtn" class="font-mono font-bold text-pddRed hover:underline flex items-center gap-1">
+              <span id="modalOrderTracking">TRK-00000</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="border p-3.5 rounded-2xl space-y-1">
+            <span class="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Team Leader / Buyer</span>
+            <p class="font-bold text-slate-900" id="modalBuyerName">Customer Name</p>
+            <p class="text-slate-500" id="modalBuyerPhone">012-3456789</p>
+          </div>
+          <div class="border p-3.5 rounded-2xl space-y-1">
+            <span class="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Delivery Destination</span>
+            <p class="text-slate-700" id="modalShippingAddress">Address</p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-black text-slate-800 mb-2">Itemized Group Formulations</h4>
+          <div class="border rounded-2xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                <tr>
+                  <th class="p-2.5">Item</th>
+                  <th class="p-2.5 text-center">Qty</th>
+                  <th class="p-2.5 text-right">Team Price</th>
+                  <th class="p-2.5 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody id="modalOrderItemsBody" class="divide-y divide-slate-100">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1 text-xs">
+          <div class="flex justify-between text-slate-600"><span>Group Buy Subtotal:</span> <span id="modalSubtotal" class="font-semibold">RM 0.00</span></div>
+          <div class="flex justify-between text-slate-600"><span>Subsidized Shipping:</span> <span id="modalShippingFee" class="font-semibold">RM 5.00</span></div>
+          <div class="flex justify-between text-slate-900 font-black text-sm pt-2 border-t"><span>Total Amount Paid:</span> <span id="modalGrandTotal" class="text-pddRed">RM 0.00</span></div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-100 border-t flex justify-end">
+        <button onclick="closeOrderDetailsModal()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs">
+          Close Summary
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 3: SHIPMENT TRACKING & TIMELINE ================= -->
+  <div id="shipmentTrackingModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      
+      <div class="bg-gradient-to-r from-pddRed to-pddOrange text-white p-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center font-bold">
+            <i class="fa-solid fa-truck-fast"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-sm sm:text-base">Consignment Milestone Tracking</h3>
+            <p class="text-[11px] text-rose-100">Port Klang Cold Storage &rarr; Courier Sortation &rarr; Doorstep</p>
+          </div>
+        </div>
+        <button onclick="closeShipmentTrackingModal()" class="text-white hover:text-rose-200 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="bg-rose-50 p-4 border-b border-rose-100 flex flex-wrap justify-between items-center gap-2 text-xs">
+        <div>
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Consignment Number:</span>
+          <span id="trackingCodeDisplay" class="font-mono font-bold text-pddRed text-sm">TRK-00000</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Carrier Partner:</span>
+          <span id="trackingCourierDisplay" class="font-bold text-slate-800">DHL Express</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Transit Status:</span>
+          <span class="font-bold text-emerald-600">On Schedule</span>
+        </div>
+      </div>
+
+      <!-- Progression Diagram -->
+      <div class="p-4 bg-slate-50 border-b flex items-center justify-between text-center text-[10px] font-bold text-slate-600 px-6">
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full bg-pddRed text-white flex items-center justify-center mb-1"><i class="fa-solid fa-warehouse"></i></div>
+          <span>Bonded Hub</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-pddRed mx-1 -mt-3"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full bg-pddRed text-white flex items-center justify-center mb-1"><i class="fa-solid fa-network-wired"></i></div>
+          <span>Sort Center</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-pddRed mx-1 -mt-3"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full bg-pddOrange text-white flex items-center justify-center mb-1"><i class="fa-solid fa-truck"></i></div>
+          <span>Courier Van</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-slate-300 mx-1 -mt-3"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mb-1"><i class="fa-solid fa-house-chimney"></i></div>
+          <span>Delivered</span>
+        </div>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 max-h-80" id="trackingTimelineContainer">
+        <!-- Injected by JS -->
+      </div>
+
+      <div class="p-3 bg-slate-100 border-t flex justify-end">
+        <button onclick="closeShipmentTrackingModal()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs">
+          Close Timeline
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 4: SHOPPING CART ================= -->
+  <div id="cartModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      
+      <div class="bg-gradient-to-r from-pddRed to-pddOrange text-white p-4 flex justify-between items-center">
+        <h3 class="font-black text-base flex items-center gap-2">
+          <i class="fa-solid fa-cart-shopping"></i> Group Buy Cart & Checkout
+        </h3>
+        <button onclick="closeCartModal()" class="text-white hover:text-rose-200 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div id="cartItemsContainer" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <!-- Injected by JS -->
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Team Leader / Name</label>
+              <input type="text" id="orderBuyerName" value="Dr. Kevin Tan" class="w-full p-2.5 border rounded-xl text-xs outline-none focus:border-pddRed">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Contact Phone</label>
+              <input type="text" id="orderBuyerPhone" value="+60 12-889 4433" class="w-full p-2.5 border rounded-xl text-xs outline-none focus:border-pddRed">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Delivery Address</label>
+              <input type="text" id="orderAddress" value="No. 12, Jalan BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor" class="w-full p-2.5 border rounded-xl text-xs outline-none focus:border-pddRed">
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t pt-3 space-y-1 text-slate-600">
+          <div class="flex justify-between"><span>Group Buy Subtotal:</span> <span id="cartSubtotal" class="font-bold text-slate-900">RM 0.00</span></div>
+          <div class="flex justify-between"><span>Subsidized Courier Freight:</span> <span class="font-bold text-slate-900">RM 5.00</span></div>
+          <div class="flex justify-between text-emerald-600"><span>Group Subsidy Savings:</span> <span id="cartDiscount" class="font-bold">-RM 0.00</span></div>
+          <div class="flex justify-between text-slate-900 font-black text-sm pt-1 border-t"><span>Total Amount Due:</span> <span id="cartGrandTotal" class="text-pddRed text-base">RM 0.00</span></div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border-t flex justify-end gap-2">
+        <button onclick="closeCartModal()" class="px-4 py-2 border rounded-xl font-bold text-slate-600 hover:bg-slate-100">Cancel</button>
+        <button onclick="proceedToCheckout()" class="px-6 py-2 bg-gradient-to-r from-pddRed to-pddOrange hover:from-pddRedHover hover:to-pddRed text-white font-black rounded-xl shadow-md flex items-center gap-1.5">
+          <i class="fa-solid fa-bolt"></i> Complete Team Purchase
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 text-xs sm:text-sm font-semibold hidden flex items-center gap-2.5 border border-slate-700">
+    <i class="fa-solid fa-circle-check text-yellow-400 text-base"></i>
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+  <!-- ================= JAVASCRIPT STATE & APPLICATION LOGIC ================= -->
+  <script>
+    // ----------------------------------------------------
+    // 1. DATABASE: 10 HEALTH PRODUCT LISTINGS
+    // ----------------------------------------------------
+    let products = [
+      {
+        id: 'PH-HLTH-001',
+        name: 'Liposomal Vitamin C 1500mg with Zinc & Rose Hips',
+        category: 'Immune Support',
+        price: 88.00,
+        originalPrice: 110.00,
+        rating: 4.9,
+        reviews: 1420,
+        dosage: '2 Capsules Daily (60 Servings)',
+        stock: 85,
+        soldCount: 320,
+        image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80',
+        description: 'Advanced liposomal absorption technology ensuring maximum bio-availability for immune defense, collagen synthesis, and antioxidant cellular support.'
+      },
+      {
+        id: 'PH-HLTH-002',
+        name: 'Wild Alaskan Fish Oil Omega-3 1400mg (900mg EPA/DHA)',
+        category: 'Cardio & Heart',
+        price: 115.00,
+        originalPrice: 145.00,
+        rating: 4.8,
+        reviews: 2150,
+        dosage: '1 Softgel Daily (90 Softgels)',
+        stock: 120,
+        soldCount: 490,
+        image: 'https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=600&q=80',
+        description: 'Molecularly distilled deep-sea cold-water fish oil certified free of heavy metals and PCBs. Supports cardiovascular health, brain focus, and inflammation reduction.'
+      },
+      {
+        id: 'PH-HLTH-003',
+        name: 'Raw Multi-Strain 50 Billion CFU Probiotics & Prebiotics',
+        category: 'Digestive Health',
+        price: 95.00,
+        originalPrice: 125.00,
+        rating: 4.9,
+        reviews: 980,
+        dosage: '1 Acid-Resistant Capsule Daily (60 Count)',
+        stock: 64,
+        soldCount: 280,
+        image: 'https://images.unsplash.com/photo-1550572017-ed24058f62f3?auto=format&fit=crop&w=600&q=80',
+        description: '16 diverse active probiotic strains combined with organic prebiotic fiber to nourish intestinal flora, relieve bloating, and support gut barrier integrity.'
+      },
+      {
+        id: 'PH-HLTH-004',
+        name: 'Glucosamine Sulfate 1500mg + Chondroitin & MSM Complex',
+        category: 'Joint & Mobility',
+        price: 105.00,
+        originalPrice: 135.00,
+        rating: 4.7,
+        reviews: 730,
+        dosage: '2 Tablets Daily (120 Tablets)',
+        stock: 90,
+        soldCount: 195,
+        image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=600&q=80',
+        description: 'Triple-strength joint nourishment formula designed to rebuild cartilage, lubricate knees and shoulders, and relieve stiffness during mobility.'
+      },
+      {
+        id: 'PH-HLTH-005',
+        name: 'Pure Magnesium Glycinate 400mg High Absorption for Relaxation',
+        category: 'Stress & Sleep',
+        price: 68.00,
+        originalPrice: 85.00,
+        rating: 4.9,
+        reviews: 1890,
+        dosage: '2 Veggie Capsules before Bed (120 Count)',
+        stock: 150,
+        soldCount: 510,
+        image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=600&q=80',
+        description: 'Chelated non-buffered magnesium glycinate formulated for gentle digestion, neuromuscular relaxation, reduction of night leg cramps, and deep restorative sleep.'
+      },
+      {
+        id: 'PH-HLTH-006',
+        name: 'KSM-66 Organic Ashwagandha Root Extract 600mg + Black Pepper',
+        category: 'Stress & Sleep',
+        price: 79.00,
+        originalPrice: 99.00,
+        rating: 4.8,
+        reviews: 1120,
+        dosage: '1 Capsule Twice Daily (60 Count)',
+        stock: 75,
+        soldCount: 310,
+        image: 'https://images.unsplash.com/photo-1616671285442-127976c66657?auto=format&fit=crop&w=600&q=80',
+        description: 'Standardized full-spectrum root extract clinically studied to modulate cortisol response, support adrenal balance, and alleviate chronic mental fatigue.'
+      },
+      {
+        id: 'PH-HLTH-007',
+        name: 'CoQ10 200mg (Ubiquinone) with BioPerine for Heart Energy',
+        category: 'Cardio & Heart',
+        price: 135.00,
+        originalPrice: 170.00,
+        rating: 4.9,
+        reviews: 650,
+        dosage: '1 Softgel with Meal (60 Softgels)',
+        stock: 45,
+        soldCount: 160,
+        image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=600&q=80',
+        description: 'Essential coenzyme supporting cellular ATP mitochondria energy production in the myocardium. Recommended for cardiovascular health and statin users.'
+      },
+      {
+        id: 'PH-HLTH-008',
+        name: 'Vitamin D3 5000 IU + Vitamin K2 (MK-7) 100mcg in Coconut MCT Oil',
+        category: 'Vitamins & Minerals',
+        price: 62.00,
+        originalPrice: 80.00,
+        rating: 4.9,
+        reviews: 2400,
+        dosage: '1 Liquid Softgel Daily (120 Softgels)',
+        stock: 130,
+        soldCount: 680,
+        image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80',
+        description: 'Synergistic pairing of natural cholecalciferol with menaquinone-7 ensuring proper calcium absorption into bone matrix rather than soft arterial tissue.'
+      },
+      {
+        id: 'PH-HLTH-009',
+        name: 'Hydrolyzed Marine Collagen Peptides Powder with Hyaluronic Acid',
+        category: 'Joint & Mobility',
+        price: 128.00,
+        originalPrice: 160.00,
+        rating: 4.8,
+        reviews: 820,
+        dosage: '1 Scoop Daily in Water or Coffee (300g)',
+        stock: 60,
+        soldCount: 220,
+        image: 'https://images.unsplash.com/photo-1550572017-ed24058f62f3?auto=format&fit=crop&w=600&q=80',
+        description: 'Type I & III wild-caught ocean collagen peptides formulated for skin hydration, fine-line reduction, tendon flexibility, and strengthened hair and nails.'
+      },
+      {
+        id: 'PH-HLTH-010',
+        name: 'Organic Milk Thistle Extract 1000mg with 80% Silymarin',
+        category: 'Digestive Health',
+        price: 58.00,
+        originalPrice: 75.00,
+        rating: 4.7,
+        reviews: 540,
+        dosage: '1 Veggie Capsule Daily (120 Capsules)',
+        stock: 80,
+        soldCount: 175,
+        image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=600&q=80',
+        description: 'Concentrated herbal hepatoprotective formula enriched with dandelion and artichoke extract to promote natural liver detox pathways and digestive vitality.'
+      }
+    ];
+
+    // ----------------------------------------------------
+    // 2. DATABASE: 5 SAMPLE GROUP-BUY TRANSACTIONS
+    // ----------------------------------------------------
+    let sampleOrders = [
+      {
+        orderId: 'PH-ORD-5501',
+        shipmentNo: 'PH-SHIP-991001',
+        date: '2026-10-11 10:30 AM',
+        buyerName: 'Dr. Kevin Tan',
+        buyerPhone: '+60 12-889 4433',
+        address: 'No. 12, Jalan BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor',
+        courier: 'DHL Express Malaysia',
+        status: 'Delivered',
+        subtotal: 176.00,
+        shippingFee: 5.00,
+        total: 181.00,
+        items: [
+          { prodId: 'PH-HLTH-001', name: 'Liposomal Vitamin C 1500mg (Team Buy)', qty: 2, price: 88.00 }
+        ],
+        timeline: [
+          { time: '11 Oct 2026, 10:45 AM', location: 'PinHealth Port Hub Terminal', text: 'Team formed! Order sealed in temperature-controlled bag.', status: 'done' },
+          { time: '11 Oct 2026, 02:30 PM', location: 'DHL Sorting Center Shah Alam', text: 'Package processed in transit sortation.', status: 'done' },
+          { time: '12 Oct 2026, 09:15 AM', location: 'Petaling Jaya Distribution Hub', text: 'Out for delivery with rider (Zulkifli).', status: 'done' },
+          { time: '12 Oct 2026, 11:30 AM', location: 'Buyer Residence', text: 'Signed and delivered to Dr. Kevin Tan.', status: 'done' }
+        ]
+      },
+      {
+        orderId: 'PH-ORD-5502',
+        shipmentNo: 'PH-SHIP-991002',
+        date: '2026-10-11 02:15 PM',
+        buyerName: 'Nurul Sarah',
+        buyerPhone: '+60 19-332 1100',
+        address: 'Unit 15-02, Menara Bangsar, Jalan Maarof, 59000 Kuala Lumpur',
+        courier: 'GDEX Priority Cargo',
+        status: 'Out for Delivery',
+        subtotal: 210.00,
+        shippingFee: 5.00,
+        total: 215.00,
+        items: [
+          { prodId: 'PH-HLTH-002', name: 'Wild Alaskan Fish Oil Omega-3 1400mg', qty: 1, price: 115.00 },
+          { prodId: 'PH-HLTH-003', name: 'Raw Multi-Strain 50B CFU Probiotics', qty: 1, price: 95.00 }
+        ],
+        timeline: [
+          { time: '11 Oct 2026, 02:40 PM', location: 'PinHealth Port Hub Terminal', text: 'Consignment packaged and sealed.', status: 'done' },
+          { time: '11 Oct 2026, 06:15 PM', location: 'GDEX Central Depot PJ', text: 'Departed sorting facility.', status: 'done' },
+          { time: '12 Oct 2026, 08:30 AM', location: 'Bangsar Delivery Unit', text: 'Package loaded into delivery van.', status: 'active' },
+          { time: 'Expected Today', location: 'Menara Bangsar', text: 'Direct delivery handover pending.', status: 'pending' }
+        ]
+      },
+      {
+        orderId: 'PH-ORD-5503',
+        shipmentNo: 'PH-SHIP-991003',
+        date: '2026-10-10 09:00 AM',
+        buyerName: 'David Lee',
+        buyerPhone: '+60 16-778 9922',
+        address: 'No. 45, Jalan Setia Nusantara, Setia Alam, 40170 Shah Alam, Selangor',
+        courier: 'Pos Laju Express',
+        status: 'Delivered',
+        subtotal: 233.00,
+        shippingFee: 5.00,
+        total: 238.00,
+        items: [
+          { prodId: 'PH-HLTH-004', name: 'Glucosamine Sulfate 1500mg Complex', qty: 1, price: 105.00 },
+          { prodId: 'PH-HLTH-009', name: 'Hydrolyzed Marine Collagen Peptides', qty: 1, price: 128.00 }
+        ],
+        timeline: [
+          { time: '10 Oct 2026, 09:20 AM', location: 'PinHealth Port Hub Terminal', text: 'Insulated packing complete.', status: 'done' },
+          { time: '10 Oct 2026, 01:00 PM', location: 'Pos Laju Mail Processing Center', text: 'Sorted by destination postal code.', status: 'done' },
+          { time: '11 Oct 2026, 10:15 AM', location: 'Setia Alam Local Branch', text: 'Delivered and verified via SMS OTP.', status: 'done' }
+        ]
+      },
+      {
+        orderId: 'PH-ORD-5504',
+        shipmentNo: 'PH-SHIP-991004',
+        date: '2026-10-09 04:40 PM',
+        buyerName: 'Ameera Batrisyia',
+        buyerPhone: '+60 17-224 8877',
+        address: 'Villa 8, Presint 14, 62050 Putrajaya',
+        courier: 'DHL Express Malaysia',
+        status: 'In Transit',
+        subtotal: 282.00,
+        shippingFee: 5.00,
+        total: 287.00,
+        items: [
+          { prodId: 'PH-HLTH-005', name: 'Pure Magnesium Glycinate 400mg', qty: 1, price: 68.00 },
+          { prodId: 'PH-HLTH-006', name: 'KSM-66 Organic Ashwagandha', qty: 1, price: 79.00 },
+          { prodId: 'PH-HLTH-007', name: 'CoQ10 200mg (Ubiquinone)', qty: 1, price: 135.00 }
+        ],
+        timeline: [
+          { time: '09 Oct 2026, 05:00 PM', location: 'PinHealth Port Hub Terminal', text: 'Consignment pallet dispatched.', status: 'done' },
+          { time: '10 Oct 2026, 03:00 AM', location: 'DHL Hub Puchong Gateway', text: 'Arrived at sorting facility.', status: 'done' },
+          { time: '12 Oct 2026, 07:00 AM', location: 'Putrajaya Courier Station', text: 'Sorting by route poscode.', status: 'active' },
+          { time: 'Expected Tomorrow', location: 'Presint 14, Putrajaya', text: 'Direct delivery handover.', status: 'pending' }
+        ]
+      },
+      {
+        orderId: 'PH-ORD-5505',
+        shipmentNo: 'PH-SHIP-991005',
+        date: '2026-10-08 11:15 AM',
+        buyerName: 'Chong Wei Lun',
+        buyerPhone: '+60 13-990 1234',
+        address: 'No. 88, Jalan Sutera 2, Taman Sutera Utama, 81300 Skudai, Johor',
+        courier: 'Line Clear Express',
+        status: 'Delivered',
+        subtotal: 289.00,
+        shippingFee: 5.00,
+        total: 294.30,
+        items: [
+          { prodId: 'PH-HLTH-008', name: 'Vitamin D3 5000 IU + K2 MK-7', qty: 2, price: 62.00 },
+          { prodId: 'PH-HLTH-007', name: 'CoQ10 200mg (Ubiquinone)', qty: 1, price: 135.00 },
+          { prodId: 'PH-HLTH-010', name: 'Organic Milk Thistle Extract', qty: 1, price: 58.00 }
+        ],
+        timeline: [
+          { time: '08 Oct 2026, 11:30 AM', location: 'PinHealth Port Hub Terminal', text: 'Barcode registration complete.', status: 'done' },
+          { time: '08 Oct 2026, 08:00 PM', location: 'Southern Highway Transit', text: 'En route to Johor Bahru Logistics Hub.', status: 'done' },
+          { time: '09 Oct 2026, 02:30 PM', location: 'Skudai Depot', text: 'Delivered and verified.', status: 'done' }
+        ]
+      }
+    ];
+
+    // ----------------------------------------------------
+    // 3. ADMIN PROFILE STATE
+    // ----------------------------------------------------
+    let adminProfile = {
+      name: 'Marcus Sterling',
+      email: 'admin@pinhealth.com',
+      phone: '+60 3-7890 1234',
+      company: 'PinHealth Global Bio-Logistics Sdn Bhd',
+      address: 'Berth 14, Westports Logistics Complex, 42920 Port Klang, Selangor, Malaysia.'
+    };
+
+    let isAdminLoggedIn = false;
+    let cart = [];
+    let currentCategory = 'All';
+    let currentDetailProduct = null;
+
+    // ----------------------------------------------------
+    // 4. INITIALIZATION
+    // ----------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCategoryPills();
+      renderProductsGrid();
+      renderOrdersTable();
+      renderAdminProductsTable();
+      updateCartBadge();
+    });
+
+    // ----------------------------------------------------
+    // 5. VIEW NAVIGATION CONTROLLER & ROUTE GUARDING
+    // ----------------------------------------------------
+    function switchView(viewName) {
+      // Enforce admin login for back-office and orders view
+      if ((viewName === 'orders-list' || viewName === 'admin-profile' || viewName === 'admin-products') && !isAdminLoggedIn) {
+        showToast('Please sign in to the Merchant Console to view orders.');
+        switchView('admin-login');
+        return;
+      }
+
+      document.getElementById('view-marketplace').classList.add('hidden');
+      document.getElementById('view-admin-login').classList.add('hidden');
+      document.getElementById('view-admin-profile').classList.add('hidden');
+      document.getElementById('view-admin-products').classList.add('hidden');
+      document.getElementById('view-orders-list').classList.add('hidden');
+
+      if (viewName === 'marketplace') {
+        document.getElementById('view-marketplace').classList.remove('hidden');
+      } else if (viewName === 'admin-login') {
+        document.getElementById('view-admin-login').classList.remove('hidden');
+      } else if (viewName === 'admin-profile') {
+        document.getElementById('view-admin-profile').classList.remove('hidden');
+      } else if (viewName === 'admin-products') {
+        document.getElementById('view-admin-products').classList.remove('hidden');
+        renderAdminProductsTable();
+      } else if (viewName === 'orders-list') {
+        document.getElementById('view-orders-list').classList.remove('hidden');
+        renderOrdersTable();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleAdminNavClick() {
+      if (isAdminLoggedIn) {
+        switchView('admin-profile');
+      } else {
+        switchView('admin-login');
+      }
+    }
+
+    // ----------------------------------------------------
+    // 6. PRODUCT CATALOG & CATEGORIES (PINDUODUO PILLS)
+    // ----------------------------------------------------
+    const categories = ['All', 'Vitamins & Minerals', 'Digestive Health', 'Joint & Mobility', 'Immune Support', 'Stress & Sleep', 'Cardio & Heart'];
+
+    function renderCategoryPills() {
+      const container = document.getElementById('categoryFilterContainer');
+      container.innerHTML = categories.map(cat => `
+        <button onclick="filterCategory('${cat}')" class="px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition ${
+          cat === currentCategory ? 'bg-pddRed text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.getElementById('productsHeading').innerHTML = `<i class="fa-solid fa-cart-shopping text-pddRed"></i> Health Formulations (${cat})`;
+      renderCategoryPills();
+      renderProductsGrid();
+      switchView('marketplace');
+    }
+
+    function renderProductsGrid(customItems = null) {
+      const container = document.getElementById('productsGrid');
+      let displayItems = customItems || products;
+
+      if (currentCategory !== 'All' && !customItems) {
+        displayItems = displayItems.filter(p => p.category === currentCategory);
+      }
+
+      document.getElementById('productCountLabel').innerText = `${displayItems.length} items available`;
+
+      if (displayItems.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400">
+            <i class="fa-solid fa-box-open text-4xl mb-2 text-rose-300"></i>
+            <p class="text-sm font-bold">No active group buys matching your query.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = displayItems.map(p => {
+        const discountPct = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+        return `
+          <div class="bg-white rounded-3xl border border-slate-200 hover:shadow-xl transition-all duration-200 overflow-hidden flex flex-col justify-between group cursor-pointer" onclick="openProductModal('${p.id}')">
+            <div>
+              <div class="aspect-square bg-slate-50 relative overflow-hidden flex items-center justify-center p-3">
+                <img src="${p.image}" alt="${p.name}" class="w-full h-full object-contain group-hover:scale-105 transition duration-300">
+                <span class="absolute top-2 left-2 bg-pddRed text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow">
+                  -${discountPct}% GROUP DEAL
+                </span>
+              </div>
+              <div class="p-3.5 space-y-1.5">
+                <span class="text-[10px] text-pddRed font-bold uppercase tracking-wider block">${p.category}</span>
+                <h4 class="font-bold text-xs text-slate-900 line-clamp-2 leading-snug group-hover:text-pddRed transition">
+                  ${p.name}
+                </h4>
+                <div class="flex items-center gap-1 text-[11px] text-amber-500 pt-0.5">
+                  <i class="fa-solid fa-star text-[10px]"></i>
+                  <span class="font-bold text-slate-800">${p.rating}</span>
+                  <span class="text-slate-400 text-[10px]">(${p.reviews} sold)</span>
+                </div>
+                <div class="mt-2 flex items-baseline gap-1.5">
+                  <span class="text-base font-black text-pddRed">RM ${p.price.toFixed(2)}</span>
+                  <span class="text-[11px] text-slate-400 line-through">RM ${p.originalPrice.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 pt-0">
+              <button onclick="event.stopPropagation(); quickAddToCart('${p.id}')" class="w-full py-2 bg-gradient-to-r from-pddRed to-pddOrange hover:from-pddRedHover hover:to-pddRed text-white font-black text-xs rounded-2xl transition shadow-sm flex items-center justify-center gap-1">
+                <i class="fa-solid fa-users text-[10px]"></i> Group Buy
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ----------------------------------------------------
+    // 7. ADMIN PRODUCTS SOLD / MANAGED INVENTORY
+    // ----------------------------------------------------
+    function renderAdminProductsTable() {
+      const tbody = document.getElementById('adminProductsTableBody');
+      document.getElementById('adminActiveCount').innerText = `${products.length} Items`;
+
+      tbody.innerHTML = products.map(p => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-mono font-bold text-slate-700">${p.id}</td>
+          <td class="p-3">
+            <div class="flex items-center gap-2">
+              <img src="${p.image}" class="w-8 h-8 rounded-lg border object-contain bg-white">
+              <div>
+                <span class="font-bold text-slate-900 line-clamp-1">${p.name}</span>
+                <span class="text-[10px] text-slate-400">${p.category}</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3 text-slate-600">${p.dosage || 'Standard Serving'}</td>
+          <td class="p-3 font-black text-pddRed">RM ${p.price.toFixed(2)}</td>
+          <td class="p-3 font-semibold ${p.stock < 50 ? 'text-rose-600' : 'text-emerald-700'}">${p.stock} units</td>
+          <td class="p-3 text-slate-700 font-bold">${p.soldCount || 100} groups formed</td>
+          <td class="p-3 text-right">
+            <button onclick="deleteProduct('${p.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-bold p-1">
+              <i class="fa-solid fa-trash"></i> Remove
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function handleAddNewAdminProduct(e) {
+      e.preventDefault();
+      const title = document.getElementById('newProdTitle').value.trim();
+      const category = document.getElementById('newProdCategory').value;
+      const price = parseFloat(document.getElementById('newProdPrice').value);
+      const stock = parseInt(document.getElementById('newProdStock').value);
+      const dosage = document.getElementById('newProdDosage').value.trim() || '1 Capsule Daily (60 Count)';
+      let img = document.getElementById('newProdImg').value.trim();
+
+      if (!img) {
+        img = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80';
+      }
+
+      const newId = `PH-HLTH-0${products.length + 1}`;
+      const newProd = {
+        id: newId,
+        name: title,
+        category: category,
+        price: price,
+        originalPrice: price * 1.35,
+        rating: 5.0,
+        reviews: 1,
+        dosage: dosage,
+        stock: stock,
+        soldCount: 0,
+        image: img,
+        description: `Direct producer group formulation: ${title}. Certified by PinHealth Logistics Terminal.`
+      };
+
+      products.unshift(newProd);
+      renderAdminProductsTable();
+      renderProductsGrid();
+      showToast(`Group deal "${title}" published!`);
+      e.target.reset();
+    }
+
+    function deleteProduct(prodId) {
+      if (confirm('Are you sure you want to remove this health formulation from inventory?')) {
+        products = products.filter(p => p.id !== prodId);
+        renderAdminProductsTable();
+        renderProductsGrid();
+        showToast('Item removed from active group catalog.');
+      }
+    }
+
+    // ----------------------------------------------------
+    // 8. PRODUCT DETAIL MODAL CONTROLLER
+    // ----------------------------------------------------
+    function openProductModal(prodId) {
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+
+      currentDetailProduct = prod;
+      document.getElementById('detailImg').src = prod.image;
+      document.getElementById('detailCategory').innerText = prod.category;
+      document.getElementById('detailTitle').innerText = prod.name;
+      document.getElementById('detailRatingVal').innerText = prod.rating;
+      document.getElementById('detailRatingsCount').innerText = `${prod.reviews} group buys formed`;
+      document.getElementById('detailPrice').innerText = `RM ${prod.price.toFixed(2)}`;
+      document.getElementById('detailOrigPrice').innerText = `RM ${prod.originalPrice.toFixed(2)}`;
+      document.getElementById('btnSinglePrice').innerText = `RM ${prod.originalPrice.toFixed(2)}`;
+      document.getElementById('btnGroupPrice').innerText = `RM ${prod.price.toFixed(2)}`;
+      document.getElementById('detailDescription').innerText = prod.description;
+      document.getElementById('detailDosage').innerText = prod.dosage;
+      document.getElementById('detailStock').innerText = `${prod.stock} units in stock`;
+      document.getElementById('detailQtyInput').value = 1;
+
+      document.getElementById('productDetailModal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productDetailModal').classList.add('hidden');
+    }
+
+    function changeDetailQty(delta) {
+      const input = document.getElementById('detailQtyInput');
+      let val = parseInt(input.value) + delta;
+      if (val < 1) val = 1;
+      if (currentDetailProduct && val > currentDetailProduct.stock) {
+        val = currentDetailProduct.stock;
+        showToast(`Stock limit: Maximum ${val} units allowed`);
+      }
+      input.value = val;
+    }
+
+    function addToCartFromDetail(isGroupBuy = true) {
+      if (!currentDetailProduct) return;
+      const qty = parseInt(document.getElementById('detailQtyInput').value);
+      addItemToCart(currentDetailProduct.id, qty, isGroupBuy);
+      closeProductModal();
+    }
+
+    function quickAddToCart(prodId) {
+      addItemToCart(prodId, 1, true);
+    }
+
+    function addItemToCart(prodId, qty, isGroupBuy = true) {
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+
+      const unitPrice = isGroupBuy ? prod.price : prod.originalPrice;
+      const existing = cart.find(c => c.id === prodId && c.isGroupBuy === isGroupBuy);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        cart.push({ ...prod, price: unitPrice, isGroupBuy, qty });
+      }
+      updateCartBadge();
+      showToast(isGroupBuy ? `Joined Group Buy: ${prod.name}` : `Single Purchase: ${prod.name}`);
+    }
+
+    // ----------------------------------------------------
+    // 9. ORDERS & TRANSACTIONS (5 RECORDS)
+    // ----------------------------------------------------
+    function renderOrdersTable() {
+      const tbody = document.getElementById('ordersTableBody');
+      tbody.innerHTML = sampleOrders.map(o => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3">
+            <button onclick="openOrderDetails('${o.orderId}')" class="font-bold font-mono text-pddRed hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-receipt text-xs"></i> #${o.orderId}
+            </button>
+          </td>
+          <td class="p-3">
+            <button onclick="openShipmentTracking('${o.shipmentNo}')" class="group text-left px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 transition">
+              <span class="text-xs font-mono font-bold text-pddRed flex items-center gap-1">
+                <i class="fa-solid fa-truck-fast"></i> ${o.shipmentNo}
+              </span>
+              <span class="text-[10px] text-slate-500 block underline">Inspect Flow &rarr;</span>
+            </button>
+          </td>
+          <td class="p-3 text-slate-500 text-xs">${o.date}</td>
+          <td class="p-3">
+            <span class="font-bold text-slate-900 block">${o.buyerName}</span>
+            <span class="text-[10px] text-slate-400">${o.buyerPhone}</span>
+          </td>
+          <td class="p-3">
+            <span class="font-medium text-slate-800">${o.items[0]?.name}</span>
+            ${o.items.length > 1 ? `<span class="text-[10px] text-slate-400 block">+${o.items.length - 1} additional item(s)</span>` : ''}
+          </td>
+          <td class="p-3 font-black text-pddRed">RM ${o.total.toFixed(2)}</td>
+          <td class="p-3">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+              o.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+              o.status === 'Out for Delivery' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+              'bg-rose-100 text-rose-800 border border-rose-300'
+            }">
+              ${o.status}
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="openOrderDetails('${o.orderId}')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition">
+              Details
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ----------------------------------------------------
+    // 10. MODALS: ORDER INVOICE & TRACKING
+    // ----------------------------------------------------
+    function openOrderDetails(orderId) {
+      const order = sampleOrders.find(o => o.orderId === orderId);
+      if (!order) return;
+
+      document.getElementById('modalOrderCode').innerText = `#${order.orderId}`;
+      document.getElementById('modalOrderDate').innerText = `Date: ${order.date}`;
+      document.getElementById('modalOrderStatusBadge').innerText = order.status;
+      document.getElementById('modalOrderCourier').innerText = order.courier;
+      document.getElementById('modalOrderTracking').innerText = order.shipmentNo;
+
+      document.getElementById('modalOrderTrackingBtn').onclick = () => {
+        closeOrderDetailsModal();
+        openShipmentTracking(order.shipmentNo);
+      };
+
+      document.getElementById('modalBuyerName').innerText = order.buyerName;
+      document.getElementById('modalBuyerPhone').innerText = order.buyerPhone;
+      document.getElementById('modalShippingAddress').innerText = order.address;
+
+      const itemsBody = document.getElementById('modalOrderItemsBody');
+      itemsBody.innerHTML = order.items.map(it => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-2.5 font-medium text-slate-800">${it.name}</td>
+          <td class="p-2.5 text-center font-bold text-slate-800">${it.qty}</td>
+          <td class="p-2.5 text-right text-slate-600">RM ${it.price.toFixed(2)}</td>
+          <td class="p-2.5 text-right font-black text-pddRed">RM ${(it.price * it.qty).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('modalSubtotal').innerText = `RM ${order.subtotal.toFixed(2)}`;
+      document.getElementById('modalShippingFee').innerText = `RM ${order.shippingFee.toFixed(2)}`;
+      document.getElementById('modalGrandTotal').innerText = `RM ${order.total.toFixed(2)}`;
+
+      document.getElementById('orderDetailsModal').classList.remove('hidden');
+    }
+
+    function closeOrderDetailsModal() {
+      document.getElementById('orderDetailsModal').classList.add('hidden');
+    }
+
+    function openShipmentTracking(shipmentNo) {
+      const order = sampleOrders.find(o => o.shipmentNo === shipmentNo);
+      if (!order) return;
+
+      document.getElementById('trackingCodeDisplay').innerText = order.shipmentNo;
+      document.getElementById('trackingCourierDisplay').innerText = order.courier;
+
+      const container = document.getElementById('trackingTimelineContainer');
+      container.innerHTML = `
+        <div class="relative pl-6 space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-rose-200">
+          ${order.timeline.map(item => `
+            <div class="relative">
+              <div class="absolute -left-6 top-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${
+                item.status === 'done' ? 'bg-emerald-600 text-white' :
+                item.status === 'active' ? 'bg-pddRed text-white animate-pulse' :
+                'bg-slate-200 text-slate-400'
+              }">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div class="flex justify-between items-center">
+                  <h5 class="font-bold text-xs text-slate-900">${item.location}</h5>
+                  <span class="text-[10px] text-slate-400 font-mono">${item.time}</span>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-1 leading-snug">${item.text}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      document.getElementById('shipmentTrackingModal').classList.remove('hidden');
+    }
+
+    function closeShipmentTrackingModal() {
+      document.getElementById('shipmentTrackingModal').classList.add('hidden');
+    }
+
+    // ----------------------------------------------------
+    // 11. CART & ORDER PROCESSING
+    // ----------------------------------------------------
+    function updateCartBadge() {
+      const totalCount = cart.reduce((s, it) => s + it.qty, 0);
+      document.getElementById('cartCountBadge').innerText = totalCount;
+    }
+
+    function openCartModal() {
+      renderCartItems();
+      calculateCartTotal();
+      document.getElementById('cartModal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').classList.add('hidden');
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cartItemsContainer');
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <i class="fa-solid fa-users text-4xl mb-2 text-rose-300"></i>
+            <p class="font-bold text-xs">Your Group Buy cart is currently empty.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="flex items-center justify-between p-3 bg-slate-50 border rounded-2xl">
+          <div class="flex items-center gap-3">
+            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain bg-white rounded-xl border">
+            <div>
+              <p class="font-bold text-slate-800 text-xs line-clamp-1">${item.name}</p>
+              <p class="text-[10px] text-pddRed font-bold">${item.isGroupBuy ? 'Group Buy Tier' : 'Single Buy Tier'}</p>
+              <p class="text-xs font-black text-pddRed mt-0.5">RM ${item.price.toFixed(2)}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center border bg-white rounded-xl overflow-hidden">
+              <button onclick="changeCartQty(${idx}, -1)" class="px-2.5 py-0.5 text-xs font-bold text-slate-600">-</button>
+              <span class="px-2 text-xs font-bold">${item.qty}</span>
+              <button onclick="changeCartQty(${idx}, 1)" class="px-2.5 py-0.5 text-xs font-bold text-slate-600">+</button>
+            </div>
+            <button onclick="removeCartItem(${idx})" class="text-slate-400 hover:text-rose-600 text-sm">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function changeCartQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      updateCartBadge();
+      renderCartItems();
+      calculateCartTotal();
+    }
+
+    function removeCartItem(index) {
+      cart.splice(index, 1);
+      updateCartBadge();
+      renderCartItems();
+      calculateCartTotal();
+    }
+
+    function calculateCartTotal() {
+      const subtotal = cart.reduce((s, it) => s + (it.price * it.qty), 0);
+      const shipping = cart.length > 0 ? 5.00 : 0.00;
+      const total = subtotal + shipping;
+
+      document.getElementById('cartSubtotal').innerText = `RM ${subtotal.toFixed(2)}`;
+      document.getElementById('cartGrandTotal').innerText = `RM ${total.toFixed(2)}`;
+    }
+
+    function proceedToCheckout() {
+      if (cart.length === 0) {
+        showToast('Cart is empty. Select group buys first.');
+        return;
+      }
+
+      const buyerName = document.getElementById('orderBuyerName').value;
+      const buyerPhone = document.getElementById('orderBuyerPhone').value;
+      const address = document.getElementById('orderAddress').value;
+
+      const newOrderId = `PH-ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newShipmentNo = `PH-SHIP-${Math.floor(100000 + Math.random() * 900000)}`;
+      const subtotal = cart.reduce((s, it) => s + (it.price * it.qty), 0);
+
+      const newRecord = {
+        orderId: newOrderId,
+        shipmentNo: newShipmentNo,
+        date: new Date().toLocaleString('en-MY', { dateStyle: 'short', timeStyle: 'short' }),
+        buyerName,
+        buyerPhone,
+        address,
+        courier: 'DHL Express Malaysia',
+        status: 'In Transit',
+        subtotal,
+        shippingFee: 5.00,
+        total: subtotal + 5.00,
+        items: [...cart],
+        timeline: [
+          { time: 'Just Now', location: 'PinHealth Port Hub Terminal', text: 'Team finalized! Transferred to shipping queue.', status: 'done' },
+          { time: 'Next 12 Hours', location: 'Regional Courier Hub', text: 'Insulated packing complete.', status: 'active' },
+          { time: 'Scheduled Tomorrow', location: address, text: 'Direct delivery handover.', status: 'pending' }
+        ]
+      };
+
+      sampleOrders.unshift(newRecord);
+      cart = [];
+      updateCartBadge();
+      closeCartModal();
+      showToast(`Group Order #${newOrderId} successfully formed!`);
+      switchView('marketplace');
+    }
+
+    // ----------------------------------------------------
+    // 12. ADMIN AUTHENTICATION & PROFILE MANAGEMENT
+    // ----------------------------------------------------
+    function autofillAdminCredentials() {
+      document.getElementById('adminUserInput').value = 'admin';
+      document.getElementById('adminPassInput').value = 'PinHealth@2026';
+      document.getElementById('loginErrorMessage').classList.add('hidden');
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('adminUserInput').value.trim();
+      const p = document.getElementById('adminPassInput').value.trim();
+
+      if (u === 'admin' && p === 'PinHealth@2026') {
+        isAdminLoggedIn = true;
+        document.getElementById('navAdminLabel').innerText = `${adminProfile.name.split(' ')[0]}'s Console`;
+        document.getElementById('adminOrdersNavWrapper').classList.remove('hidden');
+        showToast('Logged in to Merchant Hub!');
+        switchView('admin-profile');
+      } else {
+        document.getElementById('loginErrorMessage').classList.remove('hidden');
+      }
+    }
+
+    function adminLogout() {
+      isAdminLoggedIn = false;
+      document.getElementById('navAdminLabel').innerText = 'Merchant Console';
+      document.getElementById('adminOrdersNavWrapper').classList.add('hidden');
+      showToast('Logged out of merchant console.');
+      switchView('marketplace');
+    }
+
+    function saveAdminProfile(e) {
+      e.preventDefault();
+      adminProfile.name = document.getElementById('profNameInput').value.trim();
+      adminProfile.email = document.getElementById('profEmailInput').value.trim();
+      adminProfile.phone = document.getElementById('profPhoneInput').value.trim();
+      adminProfile.company = document.getElementById('profCompanyInput').value.trim();
+      adminProfile.address = document.getElementById('profAddressInput').value.trim();
+
+      document.getElementById('displayAdminHeaderName').innerText = `${adminProfile.name} (Operations Lead)`;
+      document.getElementById('navAdminLabel').innerText = `${adminProfile.name.split(' ')[0]}'s Console`;
+      showToast('Merchant profile updated successfully!');
+    }
+
+    // ----------------------------------------------------
+    // 13. SEARCH & SEARCH FILTER
+    // ----------------------------------------------------
+    function handleSearch(e) {
+      if (e.key === 'Enter') executeSearch();
+    }
+
+    function executeSearch() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!q) {
+        renderProductsGrid();
+        return;
+      }
+      const matches = products.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+      renderProductsGrid(matches);
+      document.getElementById('productsHeading').innerHTML = `<i class="fa-solid fa-magnifying-glass text-pddRed"></i> Search Results: "${q}"`;
+      switchView('marketplace');
+    }
+
+    function applyPromoVoucher(code) {
+      showToast(`Group coupon code "${code}" added to cart!`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
